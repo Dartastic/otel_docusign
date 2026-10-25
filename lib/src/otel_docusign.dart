@@ -1,15 +1,16 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_docusign_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_docusign';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 class DocusignResult {
+  /// Creates a result.
   const DocusignResult({
     this.itemCount,
     this.totalSetSize,
@@ -62,8 +63,13 @@ class DocusignResult {
   final int? statusCode;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class DocusignCallResult<T> {
+  /// Creates a call result.
   const DocusignCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final DocusignResult? result;
 }
@@ -96,32 +102,32 @@ Future<T> tracedDocusign<T>({
   final span = _tracer().startSpan(
     'docusign $operation',
     kind: SpanKind.client,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     final r = await invoke();
     if (r.result != null) {
       final extras = <Attribute<Object>>[];
       if (r.result!.itemCount != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'docusign.item_count',
           r.result!.itemCount!,
         ));
       }
       if (r.result!.totalSetSize != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'docusign.total_set_size',
           r.result!.totalSetSize!,
         ));
       }
       if (r.result!.envelopeId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'docusign.envelope.id',
           r.result!.envelopeId!,
         ));
       }
       if (r.result!.envelopeStatus != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'docusign.envelope.status',
           r.result!.envelopeStatus!,
         ));
@@ -134,43 +140,43 @@ Future<T> tracedDocusign<T>({
         }
       }
       if (r.result!.recipientCount != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'docusign.recipient_count',
           r.result!.recipientCount!,
         ));
       }
       if (r.result!.templateUsed != null) {
-        extras.add(OTel.attributeBool(
+        extras.add(OTelAPI.attributeBool(
           'docusign.template.used',
           r.result!.templateUsed!,
         ));
       }
       if (r.result!.bulkSendBatchId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'docusign.bulk_send.batch_id',
           r.result!.bulkSendBatchId!,
         ));
       }
       if (r.result!.consumesSeat != null) {
-        extras.add(OTel.attributeBool(
+        extras.add(OTelAPI.attributeBool(
           'docusign.consumes_seat',
           r.result!.consumesSeat!,
         ));
       }
       if (r.result!.region != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'docusign.region',
           r.result!.region!,
         ));
       }
       if (r.result!.requestId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'docusign.request.id',
           r.result!.requestId!,
         ));
       }
       if (r.result!.statusCode != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'http.response.status_code',
           r.result!.statusCode!,
         ));
@@ -181,13 +187,13 @@ Future<T> tracedDocusign<T>({
           );
         }
       }
-      if (extras.isNotEmpty) span.addAttributes(OTel.attributes(extras));
+      if (extras.isNotEmpty) span.addAttributes(OTelAPI.attributes(extras));
     }
     return r.value;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
